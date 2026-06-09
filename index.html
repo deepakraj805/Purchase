@@ -159,7 +159,7 @@ body{font-family:var(--font);background:var(--bg);color:var(--text);min-height:1
 .dot-active{background:#1e3a8a;border:3px solid #2563eb;box-shadow:0 0 8px rgba(37,99,235,.3)}
 .dot-hold{background:#7f1d1d;border:3px solid #dc2626;box-shadow:0 0 8px rgba(220,38,38,.3)}
 .dot-pending{background:#78350f;border:3px solid #d97706}
-.dot-approval{background:#831843;border:3px solid #db2777}
+.dot-approval{background:#78350f;border:3px solid #ea580c;box-shadow:0 0 8px rgba(234,88,12,.3)}
 .dot-intransit{background:#3b0764;border:3px solid #7c3aed;box-shadow:0 0 8px rgba(124,58,237,.3)}
 .dot-na{background:rgba(255,255,255,.05);border:2px solid rgba(255,255,255,.12)}
 .tv-step-name{font-size:10px;font-weight:700;color:rgba(232,213,196,.55);text-align:center;line-height:1.3;text-transform:uppercase;letter-spacing:.03em;margin-bottom:3px}
@@ -197,14 +197,44 @@ body{font-family:var(--font);background:var(--bg);color:var(--text);min-height:1
 .sc-pending{background:#fffbeb;color:#b45309;border-color:#fde68a}.sc-pending::before{background:#d97706}
 .sc-hold{background:#fef2f2;color:#b91c1c;border-color:#fecaca}.sc-hold::before{background:#dc2626}
 .sc-released{background:#ecfdf5;color:#065f46;border-color:#a7f3d0}.sc-released::before{background:#059669}
-.sc-forapproval{background:#fdf2f8;color:#9d174d;border-color:#fbcfe8}.sc-forapproval::before{background:#db2777}
+.sc-forapproval{background:#fff7ed;color:#c2410c;border-color:#fed7aa}.sc-forapproval::before{background:#ea580c}
 .sc-notapproved{background:#fef2f2;color:#b91c1c;border-color:#fecaca}.sc-notapproved::before{background:#dc2626}
 .sc-intransit{background:#f5f3ff;color:#5b21b6;border-color:#ddd6fe}.sc-intransit::before{background:#7c3aed}
 .sc-reached{background:#ecfdf5;color:#065f46;border-color:#a7f3d0}.sc-reached::before{background:#059669}
 .sc-verified{background:#f0fdf4;color:#15803d;border-color:#bbf7d0}.sc-verified::before{background:#16a34a}
 .sc-na{background:#f8f9fa;color:#94a3b8;border-color:#e2e8f0}.sc-na::before{background:#cbd5e1}
 
-/* MODAL */
+/* EXCEL-STYLE CUSTOM DROPDOWN */
+.custom-select-wrap{position:relative;width:100%}
+.custom-select-trigger{
+  display:flex;align-items:center;gap:8px;
+  padding:8px 12px;border:1.5px solid var(--border2);border-radius:8px;
+  font-family:var(--font);font-size:13px;color:var(--text);background:#fafcfb;
+  cursor:pointer;transition:all .15s;user-select:none;justify-content:space-between;
+  min-height:38px;
+}
+.custom-select-trigger:hover{border-color:var(--green3)}
+.custom-select-trigger.open{border-color:var(--green3);box-shadow:0 0 0 3px rgba(15,92,69,.12);background:#fff}
+.custom-select-trigger .cst-left{display:flex;align-items:center;gap:7px}
+.cst-pill{display:inline-flex;align-items:center;gap:5px;padding:3px 9px;border-radius:5px;font-size:11.5px;font-weight:700;border:1.5px solid transparent}
+.cst-pill .cp-dot{width:6px;height:6px;border-radius:50%;flex-shrink:0}
+.cst-arrow{width:14px;height:14px;stroke:var(--text3);flex-shrink:0;transition:transform .15s}
+.custom-select-trigger.open .cst-arrow{transform:rotate(180deg)}
+.custom-select-dropdown{
+  position:absolute;top:calc(100% + 4px);left:0;right:0;z-index:500;
+  background:var(--surface);border:1.5px solid var(--border2);border-radius:10px;
+  box-shadow:0 8px 28px rgba(0,0,0,.16);overflow:hidden;
+  display:none;
+}
+.custom-select-dropdown.open{display:block}
+.csd-option{
+  display:flex;align-items:center;gap:8px;padding:8px 12px;
+  cursor:pointer;transition:background .12s;font-size:13px;font-weight:500;
+}
+.csd-option:hover{background:var(--beige3)}
+.csd-option.selected{background:var(--beige2)}
+.csd-option .cop-pill{display:inline-flex;align-items:center;gap:5px;padding:2px 8px;border-radius:4px;font-size:11.5px;font-weight:700;border:1.5px solid transparent}
+.csd-option .cop-dot{width:6px;height:6px;border-radius:50%;flex-shrink:0}
 .modal-overlay{position:fixed;inset:0;background:rgba(10,31,22,.6);backdrop-filter:blur(4px);z-index:1000;display:flex;align-items:center;justify-content:center;padding:20px;opacity:0;pointer-events:none;transition:opacity .2s}
 .modal-overlay.open{opacity:1;pointer-events:all}
 .modal{background:var(--surface);border-radius:16px;padding:28px;width:100%;max-width:620px;max-height:90vh;overflow-y:auto;box-shadow:var(--shadow-lg);transform:translateY(16px);transition:transform .25s;border:1px solid var(--border)}
@@ -400,27 +430,27 @@ body{font-family:var(--font);background:var(--bg);color:var(--text);min-height:1
       </div>
       <div class="form-field">
         <label class="form-label">Gen PR</label>
-        <select class="form-select" id="f-pr"></select>
+        <div class="custom-select-wrap" id="csel-pr"></div>
       </div>
       <div class="form-field">
         <label class="form-label">Quote &amp; Terms</label>
-        <select class="form-select" id="f-quote"></select>
+        <div class="custom-select-wrap" id="csel-quote"></div>
       </div>
       <div class="form-field">
         <label class="form-label">Tech Confirm</label>
-        <select class="form-select" id="f-tech"></select>
+        <div class="custom-select-wrap" id="csel-tech"></div>
       </div>
       <div class="form-field">
         <label class="form-label">PO Release</label>
-        <select class="form-select" id="f-po"></select>
+        <div class="custom-select-wrap" id="csel-po"></div>
       </div>
       <div class="form-field">
         <label class="form-label">Transport</label>
-        <select class="form-select" id="f-transport"></select>
+        <div class="custom-select-wrap" id="csel-transport"></div>
       </div>
       <div class="form-field">
         <label class="form-label">Quality Check</label>
-        <select class="form-select" id="f-qc"></select>
+        <div class="custom-select-wrap" id="csel-qc"></div>
       </div>
       <div class="form-field full form-section">
         <div class="form-section-label">Additional Fields</div>
@@ -731,7 +761,7 @@ function dotIcon(c){
   if(c==='inprogress')return'<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#93c5fd" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="23 4 23 10 17 10"/><path d="M20.49 15a9 9 0 1 1-2.12-9.36L23 10"/></svg>';
   if(c==='intransit')return'<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#c4b5fd" stroke-width="2.5" stroke-linecap="round"><rect x="1" y="3" width="15" height="13"/><polygon points="16 8 20 8 23 11 23 16 16 16 16 8"/><circle cx="5.5" cy="18.5" r="2.5"/><circle cx="18.5" cy="18.5" r="2.5"/></svg>';
   if(c==='pending')return'<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#fcd34d" stroke-width="2.5" stroke-linecap="round"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>';
-  if(c==='forapproval')return'<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#f9a8d4" stroke-width="2.5" stroke-linecap="round"><path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"/></svg>';
+  if(c==='forapproval')return'<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#fb923c" stroke-width="2.5" stroke-linecap="round"><path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"/></svg>';
   return'<svg width="8" height="8" viewBox="0 0 8 8"><circle cx="4" cy="4" r="3" fill="rgba(232,213,196,.2)"/></svg>';
 }
 
@@ -781,7 +811,7 @@ function renderPipeline(filtered){
   const grid=document.getElementById('tv-grid');
   grid.innerHTML='';
   if(!filtered.length){grid.innerHTML='<div style="padding:36px;text-align:center;color:rgba(232,213,196,.4);font-size:13px">No orders match your search or filter.</div>';return;}
-  const statusColor={completed:'#4ade80',verified:'#4ade80',released:'#4ade80',reached:'#4ade80',inprogress:'#93c5fd',intransit:'#c4b5fd',pending:'#fcd34d',forapproval:'#f9a8d4',hold:'#fca5a5',notapproved:'#fca5a5',na:'rgba(232,213,196,.22)'};
+  const statusColor={completed:'#4ade80',verified:'#4ade80',released:'#4ade80',reached:'#4ade80',inprogress:'#93c5fd',intransit:'#c4b5fd',pending:'#fcd34d',forapproval:'#fb923c',hold:'#fca5a5',notapproved:'#fca5a5',na:'rgba(232,213,196,.22)'};
   filtered.forEach(o=>{
     const statuses=stageKeys.map(k=>classify(o[k]));
     const active=statuses.filter(c=>c!=='na').length;
@@ -898,10 +928,90 @@ document.getElementById('stageFilter').addEventListener('change',e=>{stageFilter
 // ─────────────────────────────────────────────
 //  MODAL
 // ─────────────────────────────────────────────
-function populateSelects(o){
-  stageKeys.forEach(k=>{
-    const sel=document.getElementById('f-'+k);
-    sel.innerHTML=statusOptions.map(v=>`<option value="${v}"${(o&&o[k]===v)?' selected':''}>${v}</option>`).join('');
+// ─────────────────────────────────────────────
+//  EXCEL-STYLE CUSTOM DROPDOWNS
+// ─────────────────────────────────────────────
+const STATUS_STYLE = {
+  '—':           {bg:'#f1f5f9', color:'#64748b', border:'#cbd5e1', dot:'#94a3b8'},
+  'Completed':   {bg:'#f0fdf4', color:'#15803d', border:'#bbf7d0', dot:'#16a34a'},
+  'In Progress': {bg:'#eff6ff', color:'#1d4ed8', border:'#bfdbfe', dot:'#2563eb'},
+  'Pending':     {bg:'#fffbeb', color:'#b45309', border:'#fde68a', dot:'#d97706'},
+  'Hold':        {bg:'#fef2f2', color:'#b91c1c', border:'#fecaca', dot:'#dc2626'},
+  'Released':    {bg:'#ecfdf5', color:'#065f46', border:'#a7f3d0', dot:'#059669'},
+  'For Approval':{bg:'#fff7ed', color:'#c2410c', border:'#fed7aa', dot:'#ea580c'},
+  'Not Approved':{bg:'#fef2f2', color:'#b91c1c', border:'#fecaca', dot:'#dc2626'},
+  'In Transit':  {bg:'#f5f3ff', color:'#5b21b6', border:'#ddd6fe', dot:'#7c3aed'},
+  'Reached':     {bg:'#ecfdf5', color:'#065f46', border:'#a7f3d0', dot:'#059669'},
+  'Verified':    {bg:'#f0fdf4', color:'#15803d', border:'#bbf7d0', dot:'#16a34a'},
+};
+
+let _cselValues = {}; // stores current value per key
+
+function pillHTML(val, size='normal') {
+  const s = STATUS_STYLE[val] || STATUS_STYLE['—'];
+  const pad = size==='small' ? '2px 8px' : '3px 10px';
+  const fs  = size==='small' ? '11px' : '11.5px';
+  return `<span style="display:inline-flex;align-items:center;gap:5px;padding:${pad};border-radius:5px;font-size:${fs};font-weight:700;background:${s.bg};color:${s.color};border:1.5px solid ${s.border}">
+    <span style="width:6px;height:6px;border-radius:50%;background:${s.dot};flex-shrink:0"></span>${val}
+  </span>`;
+}
+
+function buildCustomSelect(key, currentVal) {
+  const wrap = document.getElementById('csel-' + key);
+  if (!wrap) return;
+  _cselValues[key] = currentVal || '—';
+
+  wrap.innerHTML = `
+    <div class="custom-select-trigger" id="cst-${key}" onclick="toggleCsel('${key}')">
+      <span class="cst-left" id="cst-label-${key}">${pillHTML(_cselValues[key])}</span>
+      <svg class="cst-arrow" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="6 9 12 15 18 9"/></svg>
+    </div>
+    <div class="custom-select-dropdown" id="csd-${key}">
+      ${statusOptions.map(v => `
+        <div class="csd-option${v===_cselValues[key]?' selected':''}" onclick="selectCsel('${key}','${v.replace(/'/g,"\\'")}')">
+          ${pillHTML(v,'small')}
+        </div>`).join('')}
+    </div>`;
+}
+
+function toggleCsel(key) {
+  const trigger = document.getElementById('cst-' + key);
+  const drop    = document.getElementById('csd-' + key);
+  const isOpen  = drop.classList.contains('open');
+  // Close all
+  document.querySelectorAll('.custom-select-dropdown.open').forEach(d => d.classList.remove('open'));
+  document.querySelectorAll('.custom-select-trigger.open').forEach(t => t.classList.remove('open'));
+  if (!isOpen) {
+    drop.classList.add('open');
+    trigger.classList.add('open');
+  }
+}
+
+function selectCsel(key, val) {
+  _cselValues[key] = val;
+  // Update trigger label
+  document.getElementById('cst-label-' + key).innerHTML = pillHTML(val);
+  // Update selected state in options
+  const drop = document.getElementById('csd-' + key);
+  drop.querySelectorAll('.csd-option').forEach((opt, i) => {
+    opt.classList.toggle('selected', statusOptions[i] === val);
+  });
+  // Close
+  drop.classList.remove('open');
+  document.getElementById('cst-' + key).classList.remove('open');
+}
+
+// Close dropdowns on outside click
+document.addEventListener('click', e => {
+  if (!e.target.closest('.custom-select-wrap')) {
+    document.querySelectorAll('.custom-select-dropdown.open').forEach(d => d.classList.remove('open'));
+    document.querySelectorAll('.custom-select-trigger.open').forEach(t => t.classList.remove('open'));
+  }
+});
+
+function populateSelects(o) {
+  stageKeys.forEach(k => {
+    buildCustomSelect(k, o ? o[k] : '—');
   });
 }
 function openAdd(){
@@ -945,14 +1055,14 @@ async function saveOrder(){
   const obj={
     id:editingId||nextId++,
     wo, item:document.getElementById('f-item').value.trim()||'—',
-    pr:document.getElementById('f-pr').value,
-    quote:document.getElementById('f-quote').value,
-    tech:document.getElementById('f-tech').value,
-    po:document.getElementById('f-po').value,
+    pr:_cselValues['pr']||'—',
+    quote:_cselValues['quote']||'—',
+    tech:_cselValues['tech']||'—',
+    po:_cselValues['po']||'—',
     readiness:document.getElementById('f-readiness').value,
     overdue:document.getElementById('f-overdue').value,
-    transport:document.getElementById('f-transport').value,
-    qc:document.getElementById('f-qc').value,
+    transport:_cselValues['transport']||'—',
+    qc:_cselValues['qc']||'—',
     dispatch:document.getElementById('f-dispatch').value,
     remarks:document.getElementById('f-remarks').value.trim(),
   };
