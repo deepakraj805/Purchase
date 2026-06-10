@@ -511,6 +511,71 @@ const AUTO_SYNC_INTERVAL = 30000;
 const STORAGE_KEY        = 'vst_pipeline_orders';
 const SCRIPT_URL_KEY     = 'vst_script_url';
 
+
+/* ═══════════════════════════════════════════════════════════════
+   GOOGLE APPS SCRIPT — paste this into script.google.com
+   File > New > Script  →  paste below  →  Deploy > Web App
+   Execute as: Me  |  Who has access: Anyone
+   ═══════════════════════════════════════════════════════════════
+
+function doGet(e) {
+  var p      = e.parameter;
+  var action = p.action;
+  var sheetName = p.sheet || 'Bought_Out';
+
+  try {
+    var ss = SpreadsheetApp.openById(p.sheetId || '1ECCLn6W3typy__c0h_2hi0MWbDKt2yY6a_3AQnC744M');
+    var ws = ss.getSheetByName(sheetName);
+    if (!ws) return jsonResp({ status:'error', message:'Sheet not found: ' + sheetName });
+
+    if (action === 'appendRow') {
+      var row = JSON.parse(p.row);
+      ws.appendRow(row);
+      return jsonResp({ status:'ok' });
+    }
+
+    if (action === 'updateRow') {
+      var woVal = p.wo;
+      var row   = JSON.parse(p.row);
+      var data  = ws.getDataRange().getValues();
+      for (var i = 1; i < data.length; i++) {
+        if (String(data[i][0]).trim() === String(woVal).trim()) {
+          var r = i + 1;
+          ws.getRange(r, 1, 1, row.length).setValues([row]);
+          return jsonResp({ status:'ok', updatedRow: r });
+        }
+      }
+      // WO not found — append instead
+      ws.appendRow(row);
+      return jsonResp({ status:'ok', note:'row appended (WO not found)' });
+    }
+
+    if (action === 'deleteRow') {
+      var woVal = p.wo;
+      var data  = ws.getDataRange().getValues();
+      for (var i = data.length - 1; i >= 1; i--) {
+        if (String(data[i][0]).trim() === String(woVal).trim()) {
+          ws.deleteRow(i + 1);
+          return jsonResp({ status:'ok' });
+        }
+      }
+      return jsonResp({ status:'error', message:'Row not found: ' + woVal });
+    }
+
+    return jsonResp({ status:'error', message:'Unknown action: ' + action });
+
+  } catch(err) {
+    return jsonResp({ status:'error', message: err.toString() });
+  }
+}
+
+function jsonResp(obj) {
+  return ContentService
+    .createTextOutput(JSON.stringify(obj))
+    .setMimeType(ContentService.MimeType.JSON);
+}
+
+   ═══════════════════════════════════════════════════════════════ */
 // Column mapping (0-indexed, matches sheet columns A-L)
 const COL = {
   wo:0, item:1, pr:2, quote:3, tech:4, po:5,
@@ -527,7 +592,7 @@ let currentView  = 'pipeline';
 let searchQuery  = '';
 let statusFilter = 'all';
 let stageFilter  = 'all';
-let scriptUrl    = localStorage.getItem(SCRIPT_URL_KEY) || 'https://script.google.com/macros/s/AKfycbymh32kHJeO2X6pDBsNqdHWfDYtsTxwFjPnl0RdDvhEzGgysmtXD2yKpo0hawsPpVnM/exec';
+let scriptUrl    = localStorage.getItem(SCRIPT_URL_KEY) || 'https://script.google.com/macros/s/AKfycbxKi7zsAxHIR8ZKM4hqYvy8BlKmjRiczrQHMBF3Km2AwaoFmbKChkyPb-Nk2oUimJ0a/exec';
 let syncTimer    = null;
 let isSyncing    = false;
 let lastSyncTime = null;
@@ -589,6 +654,12 @@ function init() {
   // Always hide the banner on load — reads work without any setup
   document.getElementById('setupBanner').style.display = 'none';
 
+  // Auto-save the hardcoded script URL if nothing stored yet
+  const HARDCODED_SCRIPT = 'https://script.google.com/macros/s/AKfycbxKi7zsAxHIR8ZKM4hqYvy8BlKmjRiczrQHMBF3Km2AwaoFmbKChkyPb-Nk2oUimJ0a/exec';
+  if (!localStorage.getItem(SCRIPT_URL_KEY)) {
+    localStorage.setItem(SCRIPT_URL_KEY, HARDCODED_SCRIPT);
+    scriptUrl = HARDCODED_SCRIPT;
+  }
   // Restore saved Apps Script URL for writes
   const inp = document.getElementById('scriptUrlInput');
   if (inp) inp.value = scriptUrl;
@@ -720,21 +791,40 @@ function mergeSheetData(sheetOrders) {
 }
 
 // ─────────────────────────────────────────────
-//  WRITE — Apps Script proxy  (same as index.html)
+//  WRITE — Apps Script proxy
+//  Script deployed: Execute as Me, Access Anyone
 // ─────────────────────────────────────────────
 async function writeToSheet(action, payload) {
-  if (!scriptUrl) return false;
+  if (!scriptUrl) { showToast('No Apps Script URL set.','error'); return false; }
   try {
-    const data = { action, sheet: SHEET_NAME, ...payload };
-    const url = scriptUrl + '?data=' + encodeURIComponent(JSON.stringify(data));
-    const res = await fetch(url, { method: 'GET' });
-    if (!res.ok) throw new Error('HTTP ' + res.status);
-    const json = await res.json().catch(() => ({ status: 'ok' }));
-    if (json.status === 'error' || json.error) throw new Error(json.message || json.error);
+    // Build URL with individual params (most compatible with doGet e.parameter)
+    const params = new URLSearchParams({
+      action,
+      sheet:   SHEET_NAME,   // Bought_Out
+      sheetId: SHEET_ID,     // spreadsheet ID
+    });
+    for (const [k, v] of Object.entries(payload)) {
+      params.append(k, typeof v === 'object' ? JSON.stringify(v) : String(v ?? ''));
+    }
+    const url = scriptUrl + '?' + params.toString();
+    console.log('[writeToSheet]', action, url);
+
+    const res = await fetch(url, { method: 'GET', redirect: 'follow' });
+    const text = await res.text();
+    console.log('[writeToSheet] response:', text.slice(0, 300));
+
+    // Detect login/redirect page (not JSON) — means "not deployed as Anyone"
+    if (text.trim().startsWith('<')) {
+      throw new Error('Script not accessible — redeploy with "Anyone" access');
+    }
+
+    // Parse JSON response
+    const json = JSON.parse(text);
+    if (json.status === 'error') throw new Error(json.message || 'Script returned error');
     return true;
   } catch(err) {
     showToast('Sheet write failed: ' + err.message, 'error');
-    console.error('Sheet write error:', err);
+    console.error('[writeToSheet] error:', err);
     return false;
   }
 }
