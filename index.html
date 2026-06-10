@@ -26,6 +26,7 @@ body{font-family:var(--font);background:var(--bg);color:var(--text);min-height:1
 .header-logo-wrap{padding:8px 20px;display:flex;align-items:center;border-right:1px solid rgba(232,213,196,.15);flex-shrink:0}
 .logo-badge{display:flex;align-items:center;gap:10px}
 .logo-icon{width:48px;height:48px;background:linear-gradient(135deg,var(--beige) 0%,#d4b89a 100%);border-radius:10px;display:flex;align-items:center;justify-content:center;font-weight:900;font-size:16px;color:var(--green);letter-spacing:-.02em;font-family:var(--mono);box-shadow:0 2px 8px rgba(0,0,0,.2)}
+.logo-badge img{height:52px;width:auto;display:block;border-radius:6px;object-fit:contain;max-width:180px}
 .logo-text{display:flex;flex-direction:column}
 .logo-name{color:var(--beige);font-size:16px;font-weight:800;letter-spacing:-.01em;line-height:1.1}
 .logo-tagline{color:rgba(232,213,196,.5);font-size:10px;font-weight:500;letter-spacing:.08em;text-transform:uppercase;margin-top:2px}
@@ -753,7 +754,7 @@ async function fetchFromSheet(silent=false) {
     saveLocal();
     renderAll();
     lastSyncTime = new Date();
-    if (!silent) showToast('Synced from Google Sheets ✓');
+    // silent sync — no popup toast
   } catch(err) {
     setSyncState('error', 'Sync failed');
     if (!silent) showToast('Sync failed: ' + err.message, 'error');
@@ -1129,7 +1130,7 @@ function openEdit(id){
   editingId=id;
   document.getElementById('modalTitle').textContent='Edit Order';
   document.getElementById('saveBtnText').textContent='Save Changes';
-  document.getElementById('f-wo').value=o.wo; document.getElementById('f-wo').readOnly=true;
+  document.getElementById('f-wo').value=o.wo; document.getElementById('f-wo').readOnly=false;
   document.getElementById('f-item').value=o.item||'';
   document.getElementById('f-readiness').value=o.readiness||'';
   document.getElementById('f-overdue').value=o.overdue||'';
