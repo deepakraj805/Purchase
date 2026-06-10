@@ -592,7 +592,8 @@ let currentView  = 'pipeline';
 let searchQuery  = '';
 let statusFilter = 'all';
 let stageFilter  = 'all';
-let scriptUrl    = localStorage.getItem(SCRIPT_URL_KEY) || 'https://script.google.com/macros/s/AKfycbxKi7zsAxHIR8ZKM4hqYvy8BlKmjRiczrQHMBF3Km2AwaoFmbKChkyPb-Nk2oUimJ0a/exec';
+const APPS_SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbx5k1E2ll7BzafBzI4b2V1Wvzj3WokFZbInlXv6CgP2q_FCnx5olknuVG2dmoa5Sf2A/exec';
+let scriptUrl    = APPS_SCRIPT_URL;
 let syncTimer    = null;
 let isSyncing    = false;
 let lastSyncTime = null;
@@ -654,15 +655,7 @@ function init() {
   // Always hide the banner on load — reads work without any setup
   document.getElementById('setupBanner').style.display = 'none';
 
-  // Auto-save the hardcoded script URL if nothing stored yet
-  const HARDCODED_SCRIPT = 'https://script.google.com/macros/s/AKfycbxKi7zsAxHIR8ZKM4hqYvy8BlKmjRiczrQHMBF3Km2AwaoFmbKChkyPb-Nk2oUimJ0a/exec';
-  if (!localStorage.getItem(SCRIPT_URL_KEY)) {
-    localStorage.setItem(SCRIPT_URL_KEY, HARDCODED_SCRIPT);
-    scriptUrl = HARDCODED_SCRIPT;
-  }
-  // Restore saved Apps Script URL for writes
-  const inp = document.getElementById('scriptUrlInput');
-  if (inp) inp.value = scriptUrl;
+  // Apps Script URL is hardcoded — no setup needed
 
   // Always fetch from sheet on load (read is public, no auth)
   fetchFromSheet();
@@ -719,7 +712,15 @@ function dismissSetup() {
 // ─────────────────────────────────────────────
 //  SYNC STATE UI
 // ─────────────────────────────────────────────
-function setSyncState(state, text) { /* silent */ }
+function setSyncState(state, text) {
+  const el = document.getElementById('syncIndicator');
+  if (!el) return;
+  el.className = 'sync-indicator ' + state;
+  const dot  = el.querySelector('.sync-dot');
+  const span = el.querySelector('.sync-label');
+  if (dot)  dot.className  = 'sync-dot' + (state === 'syncing' ? ' pulse' : '');
+  if (span) span.textContent = text || state;
+}
 
 function startAutoSync() {
   if (syncTimer) clearInterval(syncTimer);
@@ -784,59 +785,32 @@ function csvRowsToOrders(rows) {
 }
 
 function mergeSheetData(sheetOrders) {
-  const idMap = {};
-  orders.forEach(o => { idMap[o.wo] = o.id; });
-  orders = sheetOrders.map(o => ({ ...o, id: idMap[o.wo] || (nextId++) }));
+  const localIdMap = {};
+  orders.forEach(o => { localIdMap[o.wo] = o.id; });
+  const sheetWos = new Set(sheetOrders.map(o => o.wo));
+  // Sheet is source of truth; preserve local-only rows (pending writes)
+  const merged = sheetOrders.map(o => ({ ...o, id: localIdMap[o.wo] || (nextId++) }));
+  orders.forEach(o => { if (!sheetWos.has(o.wo)) merged.push(o); });
+  orders = merged;
   nextId = Math.max(...orders.map(o=>o.id), nextId-1) + 1;
 }
 
 // ─────────────────────────────────────────────
-//  WRITE — Apps Script via no-cors iframe trick
-//  Apps Script fetch() blocks CORS on redirect.
-//  Solution: fire-and-forget via hidden iframe POST.
-//  The write still happens; we just can't read the response.
+//  WRITE — fetch POST + real JSON response
 // ─────────────────────────────────────────────
-function writeToSheetNoWait(action, payload) {
-  // Build full URL with params
-  const params = new URLSearchParams({
-    action,
-    sheet:   SHEET_NAME,
-    sheetId: SHEET_ID,
-  });
-  for (const [k, v] of Object.entries(payload)) {
-    params.append(k, typeof v === 'object' ? JSON.stringify(v) : String(v ?? ''));
-  }
-  const url = scriptUrl + '?' + params.toString();
-  console.log('[writeToSheet fire-and-forget]', action, url);
-
-  // Use a hidden iframe — bypasses CORS entirely for fire-and-forget writes
-  const iframe = document.createElement('iframe');
-  iframe.style.display = 'none';
-  iframe.name = 'gs_write_' + Date.now();
-  document.body.appendChild(iframe);
-
-  const form = document.createElement('form');
-  form.method = 'GET';
-  form.action = url;
-  form.target = iframe.name;
-  document.body.appendChild(form);
-  form.submit();
-
-  // Clean up after 8 seconds
-  setTimeout(() => {
-    try { document.body.removeChild(iframe); document.body.removeChild(form); } catch(e) {}
-  }, 8000);
-}
-
 async function writeToSheet(action, payload) {
-  if (!scriptUrl) { showToast('No Apps Script URL set.', 'error'); return false; }
+  const body = { sheet: SHEET_NAME, action, ...payload };
   try {
-    writeToSheetNoWait(action, payload);
-    // We can't read the response due to CORS, so assume success after firing
-    return true;
+    const resp = await fetch(APPS_SCRIPT_URL, {
+      method: 'POST',
+      body:   JSON.stringify(body),
+    });
+    const json = JSON.parse(await resp.text());
+    if (json.status === 'ok') return true;
+    throw new Error(json.message || 'Apps Script error');
   } catch(err) {
-    showToast('Sheet write failed: ' + err.message, 'error');
     console.error('[writeToSheet] error:', err);
+    showToast('Sheet write failed: ' + err.message, 'error');
     return false;
   }
 }
@@ -1184,24 +1158,26 @@ async function saveOrder(){
     dispatch:document.getElementById('f-dispatch').value,
     remarks:document.getElementById('f-remarks').value.trim(),
   };
+  const rowObj={
+    'WO No':obj.wo,'Item Description':obj.item,
+    'Gen PR':obj.pr,'Quote & Terms':obj.quote,'Tech Confirm':obj.tech,
+    'PO Release':obj.po,'Readiness Date':obj.readiness,'Overdue Date':obj.overdue,
+    'Transport':obj.transport,'Quality Check':obj.qc,
+    'Dispatch Date':obj.dispatch,'Remarks':obj.remarks,
+  };
   if(editingId){
     const idx=orders.findIndex(x=>x.id===editingId);
     orders[idx]=obj;
-    // Write to sheet
-    if(scriptUrl){
-      setSyncState('syncing','Writing…');
-      const ok=await writeToSheet('updateRow',{wo:obj.wo,row:orderToRow(obj)});
-      setSyncState(ok?'ok':'error', ok?'Saved to sheet':'Write failed');
-      showToast('Order updated & syncing to Google Sheets…');
-    } else { showToast('Order updated (local)'); }
+    setSyncState('syncing','Writing…');
+    const ok=await writeToSheet('update',{keyColumn:'WO No',keyValue:obj.wo,row:rowObj});
+    setSyncState(ok?'ok':'error',ok?'Saved':'Write failed');
+    showToast(ok?'Order updated ✓':'Updated locally (sheet write failed)',ok?'':'error');
   } else {
     orders.push(obj);
-    if(scriptUrl){
-      setSyncState('syncing','Writing…');
-      const ok=await writeToSheet('appendRow',{row:orderToRow(obj)});
-      setSyncState(ok?'ok':'error', ok?'Saved to sheet':'Write failed');
-      showToast('Order added & syncing to Google Sheets…');
-    } else { showToast('Order added (local)'); }
+    setSyncState('syncing','Writing…');
+    const ok=await writeToSheet('append',{row:rowObj});
+    setSyncState(ok?'ok':'error',ok?'Saved':'Write failed');
+    showToast(ok?'Order added ✓':'Added locally (sheet write failed)',ok?'':'error');
   }
   saveLocal();
   closeModal();
@@ -1218,12 +1194,10 @@ function confirmDelete(id,wo){
   document.getElementById('confirmOverlay').classList.add('open');
   document.getElementById('confirmDeleteBtn').onclick=async()=>{
     orders=orders.filter(o=>o.id!==id);
-    if(scriptUrl){
-      setSyncState('syncing','Deleting…');
-      const ok=await writeToSheet('deleteRow',{wo});
-      setSyncState(ok?'ok':'error',ok?'Deleted from sheet':'Delete failed');
-      showToast('Order deleted & syncing to Google Sheets…');
-    } else { showToast('Order deleted.'); }
+    setSyncState('syncing','Deleting…');
+    const ok=await writeToSheet('delete',{keyColumn:'WO No',keyValue:wo});
+    setSyncState(ok?'ok':'error',ok?'Deleted':'Delete failed');
+    showToast(ok?'Order deleted ✓':'Deleted locally (sheet write failed)',ok?'':'error');
     saveLocal();
     closeConfirm();
     renderAll();
