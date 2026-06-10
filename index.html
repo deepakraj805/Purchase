@@ -308,7 +308,7 @@ body{font-family:var(--font);background:var(--bg);color:var(--text);min-height:1
     <div class="header-right">
       <span class="hbadge accent" id="date-badge">—</span>
 
-      <a href="https://docs.google.com/spreadsheets/d/1GrlDN6X-27033tc7elTsRafOTEmvlYw5Iec_0PMoic8/edit?gid=628012782#gid=628012782" target="_blank" class="sheet-btn open">
+      <a href="https://docs.google.com/spreadsheets/d/1ECCLn6W3typy__c0h_2hi0MWbDKt2yY6a_3AQnC744M/edit" target="_blank" class="sheet-btn open">
         <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"/><polyline points="15 3 21 3 21 9"/><line x1="10" y1="14" x2="21" y2="3"/></svg>
         Open Sheet
       </a>
@@ -504,9 +504,9 @@ body{font-family:var(--font);background:var(--bg);color:var(--text);min-height:1
 // ─────────────────────────────────────────────
 //  CONFIG  — same pattern as index.html
 // ─────────────────────────────────────────────
-const SHEET_ID   = '1GrlDN6X-27033tc7elTsRafOTEmvlYw5Iec_0PMoic8';
-const SHEET_NAME = 'Sheet1';
-const SHEET_URL  = 'https://docs.google.com/spreadsheets/d/'+SHEET_ID+'/edit?gid=628012782#gid=628012782';
+const SHEET_ID   = '1ECCLn6W3typy__c0h_2hi0MWbDKt2yY6a_3AQnC744M';
+const SHEET_NAME = 'Bought_Out';
+const SHEET_URL  = 'https://docs.google.com/spreadsheets/d/'+SHEET_ID+'/edit';
 const AUTO_SYNC_INTERVAL = 30000;
 const STORAGE_KEY        = 'vst_pipeline_orders';
 const SCRIPT_URL_KEY     = 'vst_script_url';
@@ -534,7 +534,17 @@ let lastSyncTime = null;
 
 const stageKeys    = ['pr','quote','tech','po','transport','qc'];
 const stageLabels  = {pr:'Gen PR',quote:'Quote & Terms',tech:'Tech Confirm',po:'PO Release',transport:'Transport',qc:'Quality Check'};
-const statusOptions = ['—','Completed','In Progress','Pending','Hold','Released','For Approval','Not Approved','In Transit','Reached','Verified','Ordered','Dispatched','Received','Under Inspection','Approved','Cancelled','Awaiting Delivery'];
+// Excel dropdown options per stage (from Purchase.xlsx data validations)
+const STATUS_OPTIONS_BY_KEY = {
+  pr:        ['—','Pending','In Progress','Completed','Hold'],
+  quote:     ['—','For Approval','In Progress','Completed'],
+  tech:      ['—','Pending','In Progress','Completed','Hold'],
+  po:        ['—','Pending','In Progress','Released','Hold'],
+  transport: ['—','In Transit','Reached'],
+  qc:        ['—','Pending','Verified','Not Approved'],
+};
+// Legacy flat list kept for classify() compatibility
+const statusOptions = ['—','Completed','In Progress','Pending','Hold','Released','For Approval','Not Approved','In Transit','Reached','Verified'];
 
 // ─────────────────────────────────────────────
 //  READ — gviz/tq CSV  (same as index.html)
@@ -965,13 +975,14 @@ function buildCustomSelect(key, currentVal) {
   if (!wrap) return;
   _cselValues[key] = currentVal || '—';
 
+  const opts = STATUS_OPTIONS_BY_KEY[key] || statusOptions;
   wrap.innerHTML = `
     <div class="custom-select-trigger" id="cst-${key}" onclick="toggleCsel('${key}')">
       <span class="cst-left" id="cst-label-${key}">${pillHTML(_cselValues[key])}</span>
       <svg class="cst-arrow" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="6 9 12 15 18 9"/></svg>
     </div>
     <div class="custom-select-dropdown" id="csd-${key}">
-      ${statusOptions.map(v => `
+      ${opts.map(v => `
         <div class="csd-option${v===_cselValues[key]?' selected':''}" onclick="selectCsel('${key}','${v.replace(/'/g,"\\'")}')">
           ${pillHTML(v,'small')}
         </div>`).join('')}
@@ -997,8 +1008,9 @@ function selectCsel(key, val) {
   document.getElementById('cst-label-' + key).innerHTML = pillHTML(val);
   // Update selected state in options
   const drop = document.getElementById('csd-' + key);
+  const opts = STATUS_OPTIONS_BY_KEY[key] || statusOptions;
   drop.querySelectorAll('.csd-option').forEach((opt, i) => {
-    opt.classList.toggle('selected', statusOptions[i] === val);
+    opt.classList.toggle('selected', opts[i] === val);
   });
   // Close
   drop.classList.remove('open');
