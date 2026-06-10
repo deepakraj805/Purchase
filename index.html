@@ -132,7 +132,7 @@ body{font-family:var(--font);background:var(--bg);color:var(--text);min-height:1
 .tv-wo-card:hover{border-color:rgba(232,213,196,.18);transform:translateY(-1px)}
 .tv-wo-top{display:flex;align-items:center;gap:10px;margin-bottom:16px;flex-wrap:wrap}
 .tv-wo-label{font-family:var(--mono);font-size:14px;font-weight:800;color:#ffffff;letter-spacing:.06em;flex-shrink:0}
-.tv-wo-item{font-size:11px;color:rgba(232,213,196,.45);flex:1;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;min-width:0}
+.tv-wo-item{font-size:12.5px;font-weight:600;color:rgba(232,213,196,.9);flex:1;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;min-width:0}
 .tv-wo-status{font-size:11.5px;font-weight:800;padding:4px 12px;border-radius:20px;flex-shrink:0}
 .s-inprogress{background:rgba(37,99,235,.25);color:#93c5fd;border:1px solid rgba(37,99,235,.4)}
 .s-hold{background:rgba(220,38,38,.25);color:#fca5a5;border:1px solid rgba(220,38,38,.4)}
@@ -168,7 +168,7 @@ body{font-family:var(--font);background:var(--bg);color:var(--text);min-height:1
 .tv-prog-bar{margin-top:14px;height:3px;background:rgba(255,255,255,.07);border-radius:2px;overflow:hidden}
 .tv-prog-fill{height:100%;border-radius:2px;background:linear-gradient(90deg,#16a34a,#4ade80);transition:width .8s ease}
 /* remarks chip */
-.tv-remark{margin-top:8px;font-size:10.5px;color:rgba(232,213,196,.45);padding:4px 10px;background:rgba(255,255,255,.04);border-radius:5px;border:1px solid rgba(255,255,255,.06);display:inline-block}
+.tv-remark{margin-top:8px;font-size:11.5px;font-weight:600;color:rgba(232,213,196,.95);padding:5px 12px;background:rgba(232,213,196,.1);border-radius:5px;border:1px solid rgba(232,213,196,.25);display:inline-block}
 /* extra fields */
 .tv-extras{display:flex;gap:10px;flex-wrap:wrap;margin-bottom:10px}
 .tv-extra-chip{display:flex;align-items:center;gap:5px;font-size:11.5px;font-weight:600;color:rgba(232,213,196,.8);background:rgba(255,255,255,.07);border:1px solid rgba(255,255,255,.15);border-radius:6px;padding:4px 11px}
@@ -306,23 +306,18 @@ body{font-family:var(--font);background:var(--bg);color:var(--text);min-height:1
 .slicer-divider{border:none;border-top:1px solid var(--border);margin:6px 10px}
 .tracker-content{flex:1;min-width:0}
 
-/* PIPELINE PAGINATION */
-.pipeline-pagination{display:flex;align-items:center;justify-content:center;gap:8px;padding:14px 20px;border-top:1px solid var(--border);background:var(--beige3)}
-.pp-btn{padding:6px 14px;border-radius:7px;border:1.5px solid var(--border2);background:var(--surface);font-family:var(--font);font-size:12.5px;font-weight:700;color:var(--text2);cursor:pointer;transition:all .13s}
-.pp-btn:hover:not(:disabled){border-color:var(--green3);color:var(--green)}
-.pp-btn:disabled{opacity:.4;cursor:not-allowed}
-.pp-info{font-size:12.5px;font-weight:700;color:var(--text2);padding:0 6px}
+/* PIPELINE SCROLL */
+.tv-grid-scroll{max-height:520px;overflow-y:auto;scrollbar-width:thin;scrollbar-color:var(--border2) transparent}
+.tv-grid-scroll::-webkit-scrollbar{width:5px}
+.tv-grid-scroll::-webkit-scrollbar-track{background:transparent}
+.tv-grid-scroll::-webkit-scrollbar-thumb{background:var(--border2);border-radius:4px}
 
-/* TABLE PAGINATION */
-.table-pagination{display:flex;align-items:center;justify-content:space-between;gap:8px;padding:12px 18px;border-top:1px solid var(--border);background:var(--beige3);flex-wrap:wrap}
-.tp-info{font-size:12.5px;font-weight:700;color:var(--text2)}
-.tp-controls{display:flex;align-items:center;gap:6px}
-.tp-btn{padding:5px 12px;border-radius:6px;border:1.5px solid var(--border2);background:var(--surface);font-family:var(--font);font-size:12px;font-weight:700;color:var(--text2);cursor:pointer;transition:all .13s}
-.tp-btn:hover:not(:disabled){border-color:var(--green3);color:var(--green)}
-.tp-btn:disabled{opacity:.4;cursor:not-allowed}
-.tp-page-btn{padding:5px 10px;border-radius:6px;border:1.5px solid var(--border2);background:var(--surface);font-family:var(--font);font-size:12px;font-weight:700;color:var(--text2);cursor:pointer;transition:all .13s}
-.tp-page-btn.active{background:var(--green);border-color:var(--green);color:#fff}
-.tp-page-btn:hover:not(.active){border-color:var(--green3);color:var(--green)}
+/* TABLE SCROLL */
+.detail-table-scroll{overflow-x:auto;max-height:480px;overflow-y:auto;scrollbar-width:thin;scrollbar-color:var(--border2) transparent}
+.detail-table-scroll::-webkit-scrollbar{width:5px;height:5px}
+.detail-table-scroll::-webkit-scrollbar-track{background:transparent}
+.detail-table-scroll::-webkit-scrollbar-thumb{background:var(--border2);border-radius:4px}
+.detail-table thead tr{position:sticky;top:0;z-index:2}
 </style>
 </head>
 <body>
@@ -386,16 +381,7 @@ body{font-family:var(--font);background:var(--bg);color:var(--text);min-height:1
       <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
       <input type="text" class="search-input" id="globalSearch" placeholder="Search WO number, item, remarks…">
     </div>
-    <div class="filter-group" id="filterTags"></div>
-    <select class="filter-select" id="stageFilter">
-      <option value="all">All Stages</option>
-      <option value="pr">Gen PR</option>
-      <option value="quote">Quote &amp; Terms</option>
-      <option value="tech">Tech Confirm</option>
-      <option value="po">PO Release</option>
-      <option value="transport">Transport</option>
-      <option value="qc">Quality Check</option>
-    </select>
+
     <span class="result-count" id="resultCount">— orders</span>
     <button class="add-btn" id="openAddModal">
       <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
@@ -469,11 +455,8 @@ body{font-family:var(--font);background:var(--bg);color:var(--text);min-height:1
       </div>
       <!-- MAIN CONTENT -->
       <div class="tracker-content">
-        <div class="tv-grid" id="tv-grid"></div>
-        <div id="pipeline-pagination" class="pipeline-pagination" style="display:none">
-          <button class="pp-btn" id="pp-prev" onclick="pipelinePrevPage()">&#8592; Prev</button>
-          <span class="pp-info" id="pp-info">—</span>
-          <button class="pp-btn" id="pp-next" onclick="pipelineNextPage()">Next &#8594;</button>
+        <div class="tv-grid-scroll">
+          <div class="tv-grid" id="tv-grid"></div>
         </div>
         <div style="display:none" id="table-view">
           <div class="detail-table-scroll">
@@ -490,10 +473,6 @@ body{font-family:var(--font);background:var(--bg);color:var(--text);min-height:1
               <tbody id="tbody"></tbody>
             </table>
             <div id="no-rows" class="no-rows" style="display:none">No orders match this filter.</div>
-          </div>
-          <div class="table-pagination" id="table-pagination" style="display:none">
-            <span class="tp-info" id="tp-info">—</span>
-            <div class="tp-controls" id="tp-controls"></div>
           </div>
         </div>
       </div>
@@ -691,10 +670,6 @@ let currentView  = 'pipeline';
 let searchQuery  = '';
 let statusFilter = 'all';
 let stageFilter  = 'all';
-let pipelinePage = 0;
-const PIPELINE_PAGE_SIZE = 5;
-let tablePage = 0;
-const TABLE_PAGE_SIZE = 10;
 const APPS_SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbyzYNsYIRFzNbhG9akq8F2u9wFauR4EMg1u88d1lP-79QiX_7uAMLmiPIrUn3cqB0nU/exec';
 let scriptUrl    = APPS_SCRIPT_URL;
 let syncTimer    = null;
@@ -752,7 +727,6 @@ document.getElementById('date-badge').textContent = new Date().toLocaleDateStrin
 
 function init() {
   loadLocal();
-  buildFilterTags();
   renderAll();
 
   // Always hide the banner on load — reads work without any setup
@@ -1039,13 +1013,9 @@ function renderMetrics(){
 function renderPipeline(filtered){
   const grid=document.getElementById('tv-grid');
   grid.innerHTML='';
-  if(!filtered.length){grid.innerHTML='<div style="padding:36px;text-align:center;color:rgba(232,213,196,.4);font-size:13px">No orders match your search or filter.</div>';document.getElementById('pipeline-pagination').style.display='none';return;}
-  const totalPages=Math.ceil(filtered.length/PIPELINE_PAGE_SIZE);
-  if(pipelinePage>=totalPages)pipelinePage=Math.max(0,totalPages-1);
-  const start=pipelinePage*PIPELINE_PAGE_SIZE;
-  const pageItems=filtered.slice(start,start+PIPELINE_PAGE_SIZE);
+  if(!filtered.length){grid.innerHTML='<div style="padding:36px;text-align:center;color:rgba(232,213,196,.4);font-size:13px">No orders match your search or filter.</div>';return;}
   const statusColor={completed:'#4ade80',verified:'#4ade80',released:'#4ade80',reached:'#4ade80',inprogress:'#93c5fd',intransit:'#c4b5fd',pending:'#fcd34d',forapproval:'#fb923c',hold:'#fca5a5',notapproved:'#fca5a5',na:'rgba(232,213,196,.22)'};
-  pageItems.forEach(o=>{
+  filtered.forEach(o=>{
     const statuses=stageKeys.map(k=>classify(o[k]));
     const active=statuses.filter(c=>c!=='na').length;
     const done=statuses.filter(c=>['completed','verified','released','reached'].includes(c)).length;
@@ -1086,29 +1056,15 @@ function renderPipeline(filtered){
     ${o.remarks?`<div class="tv-remark">💬 ${o.remarks}</div>`:''}`;
     grid.appendChild(card);
   });
-  // Pagination
-  const pag=document.getElementById('pipeline-pagination');
-  if(filtered.length>PIPELINE_PAGE_SIZE){
-    pag.style.display='flex';
-    document.getElementById('pp-info').textContent=`Showing ${start+1}–${Math.min(start+PIPELINE_PAGE_SIZE,filtered.length)} of ${filtered.length}`;
-    document.getElementById('pp-prev').disabled=pipelinePage===0;
-    document.getElementById('pp-next').disabled=pipelinePage>=totalPages-1;
-  } else {
-    pag.style.display='none';
-  }
 }
 
 function renderTable(filtered){
   const tbody=document.getElementById('tbody');
   const noRows=document.getElementById('no-rows');
   tbody.innerHTML='';
-  if(!filtered.length){noRows.style.display='block';document.getElementById('table-pagination').style.display='none';return;}
+  if(!filtered.length){noRows.style.display='block';return;}
   noRows.style.display='none';
-  const totalPages=Math.ceil(filtered.length/TABLE_PAGE_SIZE);
-  if(tablePage>=totalPages)tablePage=Math.max(0,totalPages-1);
-  const start=tablePage*TABLE_PAGE_SIZE;
-  const pageItems=filtered.slice(start,start+TABLE_PAGE_SIZE);
-  pageItems.forEach(o=>{
+  filtered.forEach(o=>{
     const tr=document.createElement('tr');
     tr.innerHTML=`<td><span class="td-wo">${o.wo}</span></td>
       <td><span class="td-item">${o.item||'—'}</span></td>
@@ -1127,20 +1083,6 @@ function renderTable(filtered){
       </div></td>`;
     tbody.appendChild(tr);
   });
-  // Table pagination
-  const tpag=document.getElementById('table-pagination');
-  const tctrl=document.getElementById('tp-controls');
-  if(filtered.length>TABLE_PAGE_SIZE){
-    tpag.style.display='flex';
-    document.getElementById('tp-info').textContent=`Showing ${start+1}–${Math.min(start+TABLE_PAGE_SIZE,filtered.length)} of ${filtered.length} orders`;
-    tctrl.innerHTML='';
-    const prevBtn=document.createElement('button');prevBtn.className='tp-btn';prevBtn.textContent='‹ Prev';prevBtn.disabled=tablePage===0;prevBtn.onclick=()=>{tablePage--;renderAll();};tctrl.appendChild(prevBtn);
-    const maxPages=Math.min(totalPages,7);const startPage=Math.max(0,Math.min(tablePage-3,totalPages-maxPages));
-    for(let i=startPage;i<startPage+Math.min(maxPages,totalPages);i++){const pb=document.createElement('button');pb.className='tp-page-btn'+(i===tablePage?' active':'');pb.textContent=i+1;const pi=i;pb.onclick=()=>{tablePage=pi;renderAll();};tctrl.appendChild(pb);}
-    const nextBtn=document.createElement('button');nextBtn.className='tp-btn';nextBtn.textContent='Next ›';nextBtn.disabled=tablePage>=totalPages-1;nextBtn.onclick=()=>{tablePage++;renderAll();};tctrl.appendChild(nextBtn);
-  } else {
-    tpag.style.display='none';
-  }
 }
 
 function renderAll(){
@@ -1155,39 +1097,14 @@ function renderAll(){
 // ─────────────────────────────────────────────
 //  VIEW TOGGLE
 // ─────────────────────────────────────────────
-function switchView(v){
-  currentView=v;
-  document.getElementById('tv-grid').style.display=v==='pipeline'?'flex':'none';
-  document.getElementById('pipeline-pagination').style.display='none';
-  document.getElementById('table-view').style.display=v==='table'?'block':'none';
-  document.getElementById('vt-pipeline').classList.toggle('active',v==='pipeline');
-  document.getElementById('vt-table').classList.toggle('active',v==='table');
-  renderAll();
-}
+// (view toggle handled above)
 
 // ─────────────────────────────────────────────
 //  FILTER TAGS
 // ─────────────────────────────────────────────
-function buildFilterTags(){
-  const defs=[
-    {key:'all',label:'All',dot:'#7a9e8e'},
-    {key:'hold',label:'⚠ On Hold',dot:'#dc2626'},
-    {key:'inprogress',label:'↻ In Progress',dot:'#2563eb'},
-    {key:'completed',label:'✓ Completed',dot:'#16a34a'},
-    {key:'pending',label:'◷ Pending',dot:'#d97706'},
-  ];
-  const bar=document.getElementById('filterTags');
-  defs.forEach(f=>{
-    const btn=document.createElement('button');
-    btn.className='filter-tag'+(f.key==='all'?' active':'');
-    btn.innerHTML=`<span class="ft-dot" style="background:${f.dot}"></span>${f.label}`;
-    btn.onclick=()=>{ statusFilter=f.key; stageFilter='all'; pipelinePage=0; tablePage=0; document.querySelectorAll('.filter-tag').forEach(b=>b.classList.remove('active')); btn.classList.add('active'); document.querySelectorAll('.slicer-btn[data-statusf]').forEach(b=>b.classList.remove('active')); document.querySelectorAll('.slicer-btn[data-stage]').forEach(b=>b.classList.toggle('active',b.dataset.stage==='all')); renderAll(); };
-    bar.appendChild(btn);
-  });
-}
+// filter tags removed — slicer panel handles status/stage filtering
 
-document.getElementById('globalSearch').addEventListener('input',e=>{searchQuery=e.target.value;pipelinePage=0;tablePage=0;renderAll();});
-document.getElementById('stageFilter').addEventListener('change',e=>{stageFilter=e.target.value;pipelinePage=0;tablePage=0;renderAll();});
+document.getElementById('globalSearch').addEventListener('input',e=>{searchQuery=e.target.value;renderAll();});
 
 // ─────────────────────────────────────────────
 //  SLICER
@@ -1195,22 +1112,15 @@ document.getElementById('stageFilter').addEventListener('change',e=>{stageFilter
 function setSlicerStage(stage){
   stageFilter=stage;
   statusFilter='all';
-  pipelinePage=0;tablePage=0;
   document.querySelectorAll('.slicer-btn[data-stage]').forEach(b=>b.classList.toggle('active',b.dataset.stage===stage));
   document.querySelectorAll('.slicer-btn[data-statusf]').forEach(b=>b.classList.remove('active'));
-  document.querySelectorAll('.filter-tag').forEach(b=>b.classList.toggle('active',b.dataset&&b.dataset.key==='all'||false));
-  // also sync the top filter-tag to "All"
-  document.querySelectorAll('.filter-tag').forEach(b=>b.classList.remove('active'));
-  document.querySelectorAll('.filter-tag')[0]&&document.querySelectorAll('.filter-tag')[0].classList.add('active');
   renderAll();
 }
 function setSlicerStatus(sf){
   statusFilter=sf;
   stageFilter='all';
-  pipelinePage=0;tablePage=0;
   document.querySelectorAll('.slicer-btn[data-statusf]').forEach(b=>b.classList.toggle('active',b.dataset.statusf===sf));
   document.querySelectorAll('.slicer-btn[data-stage]').forEach(b=>b.classList.toggle('active',b.dataset.stage==='all'));
-  document.querySelectorAll('.filter-tag').forEach(b=>b.classList.toggle('active',b.textContent.trim().replace(/^[^\w]*/,'').toLowerCase().startsWith(sf.replace('inprogress','in'))));
   renderAll();
 }
 function updateSlicerCounts(){
@@ -1230,10 +1140,16 @@ function updateSlicerCounts(){
 }
 
 // ─────────────────────────────────────────────
-//  PIPELINE PAGINATION
+//  VIEW TOGGLE
 // ─────────────────────────────────────────────
-function pipelinePrevPage(){if(pipelinePage>0){pipelinePage--;renderAll();}}
-function pipelineNextPage(){pipelinePage++;renderAll();}
+function switchView(v){
+  currentView=v;
+  document.getElementById('tv-grid').closest('.tv-grid-scroll').style.display=v==='pipeline'?'block':'none';
+  document.getElementById('table-view').style.display=v==='table'?'block':'none';
+  document.getElementById('vt-pipeline').classList.toggle('active',v==='pipeline');
+  document.getElementById('vt-table').classList.toggle('active',v==='table');
+  renderAll();
+}
 
 // ─────────────────────────────────────────────
 //  MODAL
