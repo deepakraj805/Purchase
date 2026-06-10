@@ -788,7 +788,6 @@ function mergeSheetData(sheetOrders) {
   const localIdMap = {};
   orders.forEach(o => { localIdMap[o.wo] = o.id; });
   const sheetWos = new Set(sheetOrders.map(o => o.wo));
-  // Sheet is source of truth; preserve local-only rows (pending writes)
   const merged = sheetOrders.map(o => ({ ...o, id: localIdMap[o.wo] || (nextId++) }));
   orders.forEach(o => { if (!sheetWos.has(o.wo)) merged.push(o); });
   orders = merged;
@@ -796,7 +795,9 @@ function mergeSheetData(sheetOrders) {
 }
 
 // ─────────────────────────────────────────────
-//  WRITE — fetch POST + real JSON response
+//  WRITE — fetch POST + positional array row
+//  Uses column index order (A=wo, B=item … L=remarks)
+//  so header name mismatches can never break writes.
 // ─────────────────────────────────────────────
 async function writeToSheet(action, payload) {
   const body = { sheet: SHEET_NAME, action, ...payload };
@@ -1158,24 +1159,19 @@ async function saveOrder(){
     dispatch:document.getElementById('f-dispatch').value,
     remarks:document.getElementById('f-remarks').value.trim(),
   };
-  const rowObj={
-    'WO No':obj.wo,'Item Description':obj.item,
-    'Gen PR':obj.pr,'Quote & Terms':obj.quote,'Tech Confirm':obj.tech,
-    'PO Release':obj.po,'Readiness Date':obj.readiness,'Overdue Date':obj.overdue,
-    'Transport':obj.transport,'Quality Check':obj.qc,
-    'Dispatch Date':obj.dispatch,'Remarks':obj.remarks,
-  };
+  // Positional array — matches sheet columns A–L exactly (no header name lookup)
+  const rowArr=orderToRow(obj);
   if(editingId){
     const idx=orders.findIndex(x=>x.id===editingId);
     orders[idx]=obj;
     setSyncState('syncing','Writing…');
-    const ok=await writeToSheet('update',{keyColumn:'WO No',keyValue:obj.wo,row:rowObj});
+    const ok=await writeToSheet('update',{keyValue:obj.wo,row:rowArr});
     setSyncState(ok?'ok':'error',ok?'Saved':'Write failed');
     showToast(ok?'Order updated ✓':'Updated locally (sheet write failed)',ok?'':'error');
   } else {
     orders.push(obj);
     setSyncState('syncing','Writing…');
-    const ok=await writeToSheet('append',{row:rowObj});
+    const ok=await writeToSheet('append',{row:rowArr});
     setSyncState(ok?'ok':'error',ok?'Saved':'Write failed');
     showToast(ok?'Order added ✓':'Added locally (sheet write failed)',ok?'':'error');
   }
@@ -1195,7 +1191,7 @@ function confirmDelete(id,wo){
   document.getElementById('confirmDeleteBtn').onclick=async()=>{
     orders=orders.filter(o=>o.id!==id);
     setSyncState('syncing','Deleting…');
-    const ok=await writeToSheet('delete',{keyColumn:'WO No',keyValue:wo});
+    const ok=await writeToSheet('delete',{keyValue:wo});
     setSyncState(ok?'ok':'error',ok?'Deleted':'Delete failed');
     showToast(ok?'Order deleted ✓':'Deleted locally (sheet write failed)',ok?'':'error');
     saveLocal();
