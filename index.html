@@ -781,7 +781,7 @@ function renderAll(){
 // ══════════════════════════════════════════════
 function overallStatus(row, cfg){
   const vals = cfg.stageKeys.map(k=>row[k]||'');
-  if(vals.every(v=>v==='Completed'||v==='Prepared')) return 'Completed';
+  if(vals.every(v=>v==='Completed'||v==='Prepared'||v==='Purchased')) return 'Completed';
   if(vals.some(v=>v==='Hold')) return 'Hold';
   if(vals.some(v=>['In Progress','Prepared','Created'].includes(v))) return 'In Progress';
   if(vals.every(v=>!v||v==='Pending')) return 'Pending';
@@ -790,7 +790,7 @@ function overallStatus(row, cfg){
 function calcPct(row, cfg){
   const total=cfg.stageKeys.length;
   if(!total) return 0;
-  return Math.round(cfg.stageKeys.filter(k=>row[k]==='Completed'||row[k]==='Prepared').length/total*100);
+  return Math.round(cfg.stageKeys.filter(k=>row[k]==='Completed'||row[k]==='Prepared'||row[k]==='Purchased').length/total*100);
 }
 function renderKPIs(){
   let total=0,inP=0,comp=0,hold=0,pend=0,pctSum=0,pctCount=0;
@@ -822,7 +822,7 @@ function renderCharts(){
   const stageCounts = {};
   sh.cfg.stageKeys.forEach((k,i)=>{
     const lbl=sh.cfg.stageLabels[i];
-    stageCounts[lbl]=sh.rows.filter(r=>r[k]==='Completed'||r[k]==='Prepared').length;
+    stageCounts[lbl]=sh.rows.filter(r=>r[k]==='Completed'||r[k]==='Prepared'||r[k]==='Purchased').length;
   });
   const total=sh.rows.length||1;
   const COLORS=['#1b7a3e','#1558a0','#4a38a8','#c0392b','#8a5200','#0e6670','#34d399','#60a5fa','#c4b5fd'];
@@ -879,22 +879,23 @@ function renderCharts(){
 //  JOURNEY TRACKER
 // ══════════════════════════════════════════════
 function stageClass(s){
-  if(s==='Completed'||s==='Prepared')return 's-done';
+  if(s==='Completed'||s==='Prepared'||s==='Purchased')return 's-done';
   if(['In Progress','Created'].includes(s))return 's-active';
   if(s==='Hold')return 's-hold';
   return 's-pending';
 }
 function nodeIcon(s){
-  if(s==='Completed'||s==='Prepared')return '✓';
+  if(s==='Completed'||s==='Prepared'||s==='Purchased')return '✓';
   if(['In Progress','Created'].includes(s))return '●';
   if(s==='Hold')return '⏸';
   return '';
 }
 function badgeCls(label){
-  if(label==='Completed')return 'badge-completed';
+  if(label==='Completed'||label==='Prepared'||label==='Purchased')return 'badge-completed';
   if(label==='In Progress')return 'badge-progress';
   if(label==='Pending')return 'badge-pending';
   if(label==='Hold')return 'badge-hold';
+  if(label==='Created')return 'badge-created';
   return 'badge-empty';
 }
 function renderJourney(){
@@ -915,8 +916,7 @@ function renderJourney(){
     const steps=sh.cfg.stageKeys.map((k,i)=>{
       const s=r[k]||'';
       const sc=stageClass(s);
-      const prevSc=i>0?stageClass(r[sh.cfg.stageKeys[i-1]]||''):'';
-      return `<div class="pstep ${prevSc}">
+      return `<div class="pstep ${sc}">
         <div class="pnode ${sc}">${nodeIcon(s)}</div>
         <div class="plbl ${sc}">${sh.cfg.stageLabels[i].replace('/','/\u200b')}</div>
       </div>`;
@@ -963,7 +963,7 @@ function renderTable(){
   set('tBody',rows.map(r=>{
     const pct=calcPct(r,sh.cfg);
     const pBarCol=pct===100?'#0D4A35':pct>60?'#1a4d7c':pct>30?'#8a5a00':'#b8c0b0';
-    const stCls={'Completed':'badge-completed','In Progress':'badge-progress','Pending':'badge-pending','Hold':'badge-hold'};
+    const stCls={'Completed':'badge-completed','Prepared':'badge-completed','Purchased':'badge-completed','In Progress':'badge-progress','Pending':'badge-pending','Hold':'badge-hold','Created':'badge-created'};
     const stageCells=sh.cfg.stageKeys.map(k=>{
       const v=r[k]||'';
       const cls=v?stCls[v]||'badge-empty':'badge-empty';
