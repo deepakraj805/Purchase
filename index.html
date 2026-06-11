@@ -498,28 +498,58 @@ const TABS_CONFIG = [
   }
 ];
 
-// Status values — auto-detected from sheet data, with sensible defaults
-const STS_DEFAULT = ['','Completed','In Progress','Pending','Hold','Prepared','Created','Purchased'];
-// Will be populated from actual sheet values after load
-let SHEET_STATUS_VALUES = [...STS_DEFAULT];
+// Per-tab, per-column dropdown options sourced from Excel data.
+// detectStatusValues() refreshes these after each data load.
+const EXCEL_STATUS_OPTIONS = {
+  casting: {
+    shell_prep:      ['', 'In Progress', 'Prepared'],
+    material_pouring:['', 'Completed', 'Hold', 'Pending'],
+    blasting:        ['', 'Completed', 'Hold', 'Pending'],
+    qc_status:       ['', 'Created', 'Hold', 'In Progress', 'Pending'],
+    final_packing:   ['', 'Completed', 'Hold', 'In Progress'],
+    packing_status:  ['', 'Completed', 'Hold', 'In Progress'],
+    dispatch:        ['', 'Completed', 'Hold', 'Pending']
+  },
+  fabrication: {
+    raw_material:  ['', 'Hold', 'Pending', 'Purchased'],
+    bending:       ['', 'Completed', 'Hold', 'Pending'],
+    cutting:       ['', 'Completed', 'Hold', 'Pending'],
+    welding:       ['', 'Completed', 'Hold', 'Pending'],
+    hard_facing:   ['', 'Completed', 'Hold', 'Pending'],
+    qc_status:     ['', 'Completed', 'Hold', 'Pending'],
+    final_packing: ['', 'Completed', 'Hold', 'In Progress'],
+    packing_status:['', 'Completed', 'Hold', 'In Progress']
+  }
+};
+
+let SHEET_STATUS_VALUES = ['','Completed','In Progress','Pending','Hold','Prepared','Created','Purchased'];
 
 function detectStatusValues(){
-  const seen = new Set(['']);
-  for(const tab of Object.values(SHEETS)){
+  for(const [tabKey, tab] of Object.entries(SHEETS)){
+    if(!EXCEL_STATUS_OPTIONS[tabKey]) EXCEL_STATUS_OPTIONS[tabKey] = {};
     tab.cfg.stageKeys.forEach(k=>{
+      const existing = EXCEL_STATUS_OPTIONS[tabKey][k] || [''];
+      const set = new Set(existing.map(v=>v.trim()));
       tab.rows.forEach(r=>{
         if(r[k]){
-          // Normalise to Title Case to avoid duplicates like "completed" vs "Completed"
-          const v = r[k].trim();
-          const norm = v.charAt(0).toUpperCase() + v.slice(1).toLowerCase();
-          seen.add(norm);
+          const norm = r[k].trim();
+          const titled = norm.charAt(0).toUpperCase() + norm.slice(1);
+          set.add(titled);
         }
       });
+      EXCEL_STATUS_OPTIONS[tabKey][k] = ['', ...[...set].filter(v=>v).sort()];
     });
   }
-  // Always include defaults
-  STS_DEFAULT.forEach(v=>seen.add(v));
-  SHEET_STATUS_VALUES = [...seen];
+  const all = new Set(SHEET_STATUS_VALUES);
+  Object.values(EXCEL_STATUS_OPTIONS).forEach(tab=>
+    Object.values(tab).forEach(opts=>opts.forEach(v=>v && all.add(v)))
+  );
+  SHEET_STATUS_VALUES = [...all];
+}
+
+function getStageOptions(tabKey, stageKey){
+  return (EXCEL_STATUS_OPTIONS[tabKey] && EXCEL_STATUS_OPTIONS[tabKey][stageKey])
+    || SHEET_STATUS_VALUES;
 }
 
 // ══════════════════════════════════════════════
@@ -611,7 +641,7 @@ function demoRows(cfg){
     return row;
   });
 }
-const APPS_SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbwz5ksqisvX3eRvKra8tEB4A35dF8poZJP8sfOyA2_vedMzvJzoun83OYW1Vde1MOXJ/exec';
+const APPS_SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbwmJlWRSWq_d_O-0f0f64HIIkBPNI2aYj0pSQ9JH7ek1KdUnALVcpxkgkKZZxMBm6JS/exec';
 
 async function scriptCall(payload){
   if(!APPS_SCRIPT_URL){
@@ -1004,12 +1034,14 @@ function renderModalFields(existing){
   const key=$('mSheet').value;
   const cfg=TABS_CONFIG.find(t=>t.key===key);
   if(!cfg)return;
-  set('mFields',`<div style="grid-column:1/-1;font-size:10.5px;font-weight:700;text-transform:uppercase;letter-spacing:.6px;color:var(--accent);margin-bottom:2px">Stage Statuses</div>
-    <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px 16px">${cfg.stageKeys.map((k,i)=>`
-    <div class="fg">
-      <label>${cfg.stageLabels[i]}</label>
-      <select class="fs" id="sf_${k}">${SHEET_STATUS_VALUES.map(o=>`<option value="${o}"${existing&&existing[k]===o?' selected':''}>${o||'— not set —'}</option>`).join('')}</select>
-    </div>`).join('')}</div>`);
+  const fields = cfg.stageKeys.map((k,i)=>{
+    const opts = getStageOptions(key, k);
+    const curVal = existing ? (existing[k]||'') : '';
+    const allOpts = (curVal && !opts.includes(curVal)) ? ['', curVal, ...opts.filter(v=>v)] : opts;
+    const options = allOpts.map(o=>`<option value="${o}"${o===curVal?' selected':''}>${o||'— not set —'}</option>`).join('');
+    return `<div class="fg"><label>${cfg.stageLabels[i]}</label><select class="fs" id="sf_${k}">${options}</select></div>`;
+  }).join('');
+  set('mFields',`<div style="grid-column:1/-1;font-size:10.5px;font-weight:700;text-transform:uppercase;letter-spacing:.6px;color:var(--accent);margin-bottom:2px">Stage Statuses</div><div style="display:grid;grid-template-columns:1fr 1fr;gap:10px 16px">${fields}</div>`);
 }
 
 async function saveWO(){
