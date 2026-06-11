@@ -482,9 +482,9 @@ const TABS_CONFIG = [
     tabName: 'Casting',
     woCol: 'Work Order No',
     itemCol: 'Item Description',
-    dateCol: 'Schedule date ',
-    stageKeys: ['shell_prep','material_pouring','blasting','qc_status','final_packing','packing_status','dispatch'],
-    stageLabels: ['Shell Preparation','Material Pouring','Blasting','QC Status','Final Packing List','Packing Status','Dispatch']
+    dateCol: 'Dispatch Date',
+    stageKeys: ['shell_prep','material_pouring','blasting','qc_status','final_packing','packing_status'],
+    stageLabels: ['Shell Preparation','Material Pouring','Blasting','QC Status','Final Packing List','Packing Status']
   },
   {
     key: 'fabrication',
@@ -508,7 +508,6 @@ const EXCEL_STATUS_OPTIONS = {
     qc_status:       ['', 'Created', 'Hold', 'In Progress', 'Pending'],
     final_packing:   ['', 'Completed', 'Hold', 'In Progress'],
     packing_status:  ['', 'Completed', 'Hold', 'In Progress'],
-    dispatch:        ['', 'Completed', 'Hold', 'Pending']
   },
   fabrication: {
     raw_material:  ['', 'Hold', 'Pending', 'Purchased'],
@@ -641,7 +640,7 @@ function demoRows(cfg){
     return row;
   });
 }
-const APPS_SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbzN3jSBD1T9RTl7ceduEwl3E-rxxbzzgpBOFQxZnLdMKQiThzCybfa8wzXr3jRC0tuL/exec';
+const APPS_SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbzYwXQA9LAdnnrU-SKJSEbZma02qZF5FcDjNepBJeFwXBrWSQJvCkzfphW3hA-72S6a/exec';
 
 async function scriptCall(payload){
   if(!APPS_SCRIPT_URL){
@@ -784,7 +783,7 @@ function overallStatus(row, cfg){
   const vals = cfg.stageKeys.map(k=>row[k]||'');
   if(vals.every(v=>v==='Completed')) return 'Completed';
   if(vals.some(v=>v==='Hold')) return 'Hold';
-  if(vals.some(v=>['In Progress','Prepared','created'].includes(v))) return 'In Progress';
+  if(vals.some(v=>['In Progress','Prepared','Created'].includes(v))) return 'In Progress';
   if(vals.every(v=>!v||v==='Pending')) return 'Pending';
   return 'Pending';
 }
@@ -881,13 +880,13 @@ function renderCharts(){
 // ══════════════════════════════════════════════
 function stageClass(s){
   if(s==='Completed')return 's-done';
-  if(['In Progress','Prepared','created'].includes(s))return 's-active';
+  if(['In Progress','Prepared','Created'].includes(s))return 's-active';
   if(s==='Hold')return 's-hold';
   return 's-pending';
 }
 function nodeIcon(s){
   if(s==='Completed')return '✓';
-  if(['In Progress','Prepared','created'].includes(s))return '●';
+  if(['In Progress','Prepared','Created'].includes(s))return '●';
   if(s==='Hold')return '⏸';
   return '';
 }
@@ -995,6 +994,23 @@ function sortTable(i){
 // ══════════════════════════════════════════════
 let _editKey = null; // null = add mode, else WO key being edited
 
+
+// ── Format any date string to YYYY-MM-DD for HTML date input ──
+function formatDateForInput(d){
+  if(!d) return '';
+  // Already YYYY-MM-DD
+  if(/^\d{4}-\d{2}-\d{2}$/.test(d)) return d;
+  // Try parsing — handles "6/19/2026", "19/06/2026", "Jun 19, 2026" etc.
+  const parsed = new Date(d);
+  if(!isNaN(parsed)){
+    const y = parsed.getFullYear();
+    const m = String(parsed.getMonth()+1).padStart(2,'0');
+    const dy = String(parsed.getDate()).padStart(2,'0');
+    return `${y}-${m}-${dy}`;
+  }
+  return d;
+}
+
 function openAddModal(){
   _editKey = null;
   $('mSheet').value = activeTab;
@@ -1016,7 +1032,7 @@ function openEditModal(woEnc, tabKey){
   $('mSheet').disabled = true;
   $('mWo').value = r.wo;
   $('mItem').value = r.item || '';
-  $('mDate').value = r.date || '';
+  $('mDate').value = formatDateForInput(r.date || '');
   const t = $('modal-title');
   t.innerHTML = `<svg viewBox="0 0 24 24" style="stroke:var(--amber)"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/></svg> Edit Work Order`;
   renderModalFields(r);
