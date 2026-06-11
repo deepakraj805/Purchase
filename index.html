@@ -640,7 +640,7 @@ function demoRows(cfg){
     return row;
   });
 }
-const APPS_SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbzYwXQA9LAdnnrU-SKJSEbZma02qZF5FcDjNepBJeFwXBrWSQJvCkzfphW3hA-72S6a/exec';
+const APPS_SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbzN3jSBD1T9RTl7ceduEwl3E-rxxbzzgpBOFQxZnLdMKQiThzCybfa8wzXr3jRC0tuL/exec';
 
 async function scriptCall(payload){
   if(!APPS_SCRIPT_URL){
@@ -781,7 +781,7 @@ function renderAll(){
 // ══════════════════════════════════════════════
 function overallStatus(row, cfg){
   const vals = cfg.stageKeys.map(k=>row[k]||'');
-  if(vals.every(v=>v==='Completed')) return 'Completed';
+  if(vals.every(v=>v==='Completed'||v==='Prepared')) return 'Completed';
   if(vals.some(v=>v==='Hold')) return 'Hold';
   if(vals.some(v=>['In Progress','Prepared','Created'].includes(v))) return 'In Progress';
   if(vals.every(v=>!v||v==='Pending')) return 'Pending';
@@ -790,7 +790,7 @@ function overallStatus(row, cfg){
 function calcPct(row, cfg){
   const total=cfg.stageKeys.length;
   if(!total) return 0;
-  return Math.round(cfg.stageKeys.filter(k=>row[k]==='Completed').length/total*100);
+  return Math.round(cfg.stageKeys.filter(k=>row[k]==='Completed'||row[k]==='Prepared').length/total*100);
 }
 function renderKPIs(){
   let total=0,inP=0,comp=0,hold=0,pend=0,pctSum=0,pctCount=0;
@@ -822,7 +822,7 @@ function renderCharts(){
   const stageCounts = {};
   sh.cfg.stageKeys.forEach((k,i)=>{
     const lbl=sh.cfg.stageLabels[i];
-    stageCounts[lbl]=sh.rows.filter(r=>r[k]==='Completed').length;
+    stageCounts[lbl]=sh.rows.filter(r=>r[k]==='Completed'||r[k]==='Prepared').length;
   });
   const total=sh.rows.length||1;
   const COLORS=['#1b7a3e','#1558a0','#4a38a8','#c0392b','#8a5200','#0e6670','#34d399','#60a5fa','#c4b5fd'];
@@ -879,14 +879,14 @@ function renderCharts(){
 //  JOURNEY TRACKER
 // ══════════════════════════════════════════════
 function stageClass(s){
-  if(s==='Completed')return 's-done';
-  if(['In Progress','Prepared','Created'].includes(s))return 's-active';
+  if(s==='Completed'||s==='Prepared')return 's-done';
+  if(['In Progress','Created'].includes(s))return 's-active';
   if(s==='Hold')return 's-hold';
   return 's-pending';
 }
 function nodeIcon(s){
-  if(s==='Completed')return '✓';
-  if(['In Progress','Prepared','Created'].includes(s))return '●';
+  if(s==='Completed'||s==='Prepared')return '✓';
+  if(['In Progress','Created'].includes(s))return '●';
   if(s==='Hold')return '⏸';
   return '';
 }
