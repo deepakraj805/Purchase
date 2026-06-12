@@ -176,13 +176,15 @@ body{
 .jdate svg{width:11px;height:11px;stroke:currentColor;fill:none;stroke-width:2;stroke-linecap:round;stroke-linejoin:round}
 .jprog{margin-left:auto;font-size:10.5px;color:var(--tx3);letter-spacing:.07em;text-transform:uppercase;display:flex;align-items:center;gap:6px;font-weight:700}
 .jprog-val{font-size:15px;font-weight:800;color:#0D4A35;letter-spacing:-0.01em;font-family:var(--fm)}
-.badge{display:inline-flex;align-items:center;padding:2px 9px;border-radius:20px;font-size:10.5px;font-weight:700;white-space:nowrap;letter-spacing:.02em}
+.badge{display:inline-flex;align-items:center;gap:5px;padding:2px 9px;border-radius:20px;font-size:10.5px;font-weight:700;white-space:nowrap;letter-spacing:.02em}
 .badge-completed{background:#dff0e8;color:#0D4A35;font-weight:700}
+.badge-completed::before{content:'✓';font-size:10px;font-weight:900;color:#0D4A35}
 .badge-progress{background:var(--blue-lt);color:var(--blue)}
+.badge-progress::before{content:'';display:inline-block;width:9px;height:9px;border:1.5px solid var(--blue);border-top-color:transparent;border-radius:50%;animation:spin .65s linear infinite;flex-shrink:0}
 .badge-pending{background:var(--amber-lt);color:var(--amber)}
 .badge-hold{background:var(--red-lt);color:var(--red)}
 .badge-prepared{background:var(--purple-lt);color:var(--purple)}
-.badge-created{background:var(--teal-lt);color:var(--teal)}
+.badge-created{background:#dff0e8;color:#0D4A35;font-weight:700}
 .badge-empty{background:var(--bg3);color:var(--tx3);border:1px solid var(--bd2)}
 
 /* ── Pipeline track ── */
@@ -191,18 +193,20 @@ body{
 .pstep{display:flex;flex-direction:column;align-items:center;flex:1;position:relative}
 .pstep:not(:last-child)::after{content:'';position:absolute;top:14px;left:calc(50% + 15px);right:calc(-50% + 15px);height:2px;background:var(--bd2);z-index:0}
 .pstep.s-done:not(:last-child)::after{background:#0D4A35}
-.pstep.s-active:not(:last-child)::after{background:linear-gradient(90deg,#f59e0b,var(--bd2))}
-.pstep.s-hold:not(:last-child)::after{background:var(--red)}
+.pstep.s-active:not(:last-child)::after{background:linear-gradient(90deg,var(--blue),var(--bd2))}
+.pstep.s-hold:not(:last-child)::after{background:repeating-linear-gradient(90deg,var(--red) 0,var(--red) 4px,transparent 4px,transparent 8px)}
 .pnode{width:30px;height:30px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:13px;z-index:1;position:relative;border:2px solid var(--bd2);background:var(--bg2);color:var(--tx3);box-shadow:var(--shadow)}
-.pnode.s-done{background:#0D4A35;border-color:#0D4A35;color:var(--sand);box-shadow:0 0 10px rgba(13,74,53,.35)}
-.pnode.s-active{background:#f59e0b;border-color:#f59e0b;color:#fff;box-shadow:0 0 8px rgba(245,158,11,.4);animation:glow-active 2s ease-in-out infinite}
-@keyframes glow-active{0%,100%{box-shadow:0 0 8px rgba(245,158,11,.4)}50%{box-shadow:0 0 16px rgba(245,158,11,.7)}}
-.pnode.s-hold{background:var(--red-lt);border-color:var(--red);color:var(--red)}
-.pnode.s-pending{background:var(--bg2);border-color:var(--bd2);color:var(--tx3)}
+.pnode.s-done{background:#0D4A35;border-color:#0D4A35;color:#fff;box-shadow:0 0 10px rgba(13,74,53,.35);font-size:14px;font-weight:900}
+.pnode.s-active{background:#fff;border:2.5px solid var(--blue);color:var(--blue);box-shadow:0 0 8px rgba(26,77,124,.25)}
+.pnode.s-hold{background:#fff2f2;border-color:var(--red);color:var(--red)}
+.pnode.s-pending{background:var(--bg2);border-color:#d4a030;color:#8a5a00;font-size:15px}
+/* Spinner inside pipeline node for In Progress */
+.node-spinner{display:inline-block;width:12px;height:12px;border:2px solid rgba(26,77,124,.25);border-top-color:var(--blue);border-radius:50%;animation:spin .65s linear infinite}
 .plbl{font-size:9.5px;color:var(--tx3);text-align:center;margin-top:5px;line-height:1.3;max-width:66px;font-weight:500}
 .plbl.s-done{color:#0D4A35;font-weight:700}
-.plbl.s-active{color:#d97706;font-weight:700}
+.plbl.s-active{color:var(--blue);font-weight:700}
 .plbl.s-hold{color:var(--red);font-weight:700}
+.plbl.s-pending{color:#8a5a00;font-weight:600}
 
 /* ── Table ── */
 .twrap{overflow-x:auto;max-height:418px;overflow-y:auto}
@@ -284,6 +288,7 @@ tbody tr:hover td{background:var(--bg3)}
 .submit-btn:hover{background:#dfc4a5;box-shadow:0 2px 10px rgba(232,205,181,.6);transform:translateY(-1px)}
 .submit-btn:disabled{opacity:.6;cursor:not-allowed}
 .submit-btn svg{width:13px;height:13px;stroke:currentColor;fill:none;stroke-width:2.5;stroke-linecap:round;stroke-linejoin:round}
+.btn-spinner{display:inline-block;width:12px;height:12px;border:2px solid rgba(13,74,53,.3);border-top-color:var(--forest);border-radius:50%;animation:spin .65s linear infinite;flex-shrink:0}
 
 /* ── Sheet source chip ── */
 .sheet-chip{display:inline-flex;align-items:center;gap:7px;background:#dff0e8;border:1px solid rgba(13,74,53,.22);border-radius:8px;padding:.35rem .85rem;font-size:11.5px;color:#0D4A35;font-weight:600}
@@ -781,7 +786,7 @@ function renderAll(){
 // ══════════════════════════════════════════════
 function overallStatus(row, cfg){
   const vals = cfg.stageKeys.map(k=>row[k]||'');
-  if(vals.every(v=>v==='Completed'||v==='Prepared'||v==='Purchased')) return 'Completed';
+  if(vals.every(v=>v==='Completed'||v==='Prepared'||v==='Purchased'||v==='Created')) return 'Completed';
   if(vals.some(v=>v==='Hold')) return 'Hold';
   if(vals.some(v=>['In Progress','Prepared','Created'].includes(v))) return 'In Progress';
   if(vals.every(v=>!v||v==='Pending')) return 'Pending';
@@ -879,23 +884,24 @@ function renderCharts(){
 //  JOURNEY TRACKER
 // ══════════════════════════════════════════════
 function stageClass(s){
-  if(s==='Completed'||s==='Prepared'||s==='Purchased')return 's-done';
-  if(['In Progress','Created'].includes(s))return 's-active';
+  if(s==='Completed'||s==='Prepared'||s==='Purchased'||s==='Created')return 's-done';
+  if(s==='In Progress')return 's-active';
   if(s==='Hold')return 's-hold';
+  if(s==='Pending')return 's-pending';
   return 's-pending';
 }
 function nodeIcon(s){
-  if(s==='Completed'||s==='Prepared'||s==='Purchased')return '✓';
-  if(['In Progress','Created'].includes(s))return '●';
+  if(s==='Completed'||s==='Prepared'||s==='Purchased'||s==='Created')return '✓';
+  if(s==='In Progress')return '<span class="node-spinner"></span>';
   if(s==='Hold')return '⏸';
+  if(s==='Pending')return '◷';
   return '';
 }
 function badgeCls(label){
-  if(label==='Completed'||label==='Prepared'||label==='Purchased')return 'badge-completed';
+  if(label==='Completed'||label==='Prepared'||label==='Purchased'||label==='Created')return 'badge-completed';
   if(label==='In Progress')return 'badge-progress';
   if(label==='Pending')return 'badge-pending';
   if(label==='Hold')return 'badge-hold';
-  if(label==='Created')return 'badge-created';
   return 'badge-empty';
 }
 function renderJourney(){
@@ -963,7 +969,7 @@ function renderTable(){
   set('tBody',rows.map(r=>{
     const pct=calcPct(r,sh.cfg);
     const pBarCol=pct===100?'#0D4A35':pct>60?'#1a4d7c':pct>30?'#8a5a00':'#b8c0b0';
-    const stCls={'Completed':'badge-completed','Prepared':'badge-completed','Purchased':'badge-completed','In Progress':'badge-progress','Pending':'badge-pending','Hold':'badge-hold','Created':'badge-created'};
+    const stCls={'Completed':'badge-completed','Prepared':'badge-completed','Purchased':'badge-completed','Created':'badge-completed','In Progress':'badge-progress','Pending':'badge-pending','Hold':'badge-hold'};
     const stageCells=sh.cfg.stageKeys.map(k=>{
       const v=r[k]||'';
       const cls=v?stCls[v]||'badge-empty':'badge-empty';
@@ -1069,7 +1075,7 @@ async function saveWO(){
   cfg.stageKeys.forEach(k=>{nr[k]=$(`sf_${k}`)?.value||'';});
 
   const btn = document.querySelector('.submit-btn');
-  if(btn){ btn.disabled=true; btn.textContent='Saving…'; }
+  if(btn){ btn.disabled=true; btn.innerHTML='<span class="btn-spinner"></span> Saving…'; }
 
   if(_editKey){
     const result = await scriptCall({
